@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2f5bea">
+<title>반응속도 테스트 · 초록이 되면 누르기, 5번 재서 평균·최고 기록 (설치 없이 무료)</title>
+<meta name="description" content="화면이 초록으로 바뀌는 순간 누르는 무료 반응속도 테스트입니다. 5번 재서 회차별 기록과 평균·최고 기록을 ms 단위로 보여 주고, 초록이 되기 전에 누르면 부정 출발로 그 회차를 다시 잽니다. 기록은 이 기기에만 쌓이고, 결과 카드를 PNG 이미지로 저장할 수 있습니다. 휴대폰 터치·PC 마우스·스페이스바 모두 설치 없이 됩니다.">
+<meta property="og:title" content="반응속도 테스트 · 초록이 되면 누르세요 (5번 평균·최고 기록)">
+<meta property="og:description" content="기다리세요 → 지금! 초록으로 바뀌는 순간 눌러 반응 시간을 ms로 잽니다. 5번 평균·최고 기록, 부정 출발 판정, 결과 이미지 저장까지 설치 없이.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hwj-hub.github.io/reaction_test/">
+<!-- 링크 미리보기 그림: 스크래퍼는 절대 주소만 읽으므로 배포 주소로 적는다. 그림은 make_og.py 가 만든 og-image.png(1200×630) -->
+<meta property="og:image" content="https://hwj-hub.github.io/reaction_test/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="반응속도 테스트 — 빨간 「기다리세요」 화면이 초록 「지금!」으로 바뀌고 반응 시간이 ms로 표시되는 화면">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="반응속도 테스트 · 초록이 되면 누르세요">
+<meta name="twitter:description" content="5번 재서 평균·최고 기록, 부정 출발 판정, 결과 이미지 저장까지 설치 없이.">
+<meta name="twitter:image" content="https://hwj-hub.github.io/reaction_test/og-image.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='88'%3E%E2%9A%A1%3C/text%3E%3C/svg%3E">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  color-scheme:light dark;
+  --bg:#f2f4f9; --card:#fff; --card2:#f3f5fb; --fg:#131a2c; --muted:#5a6479; --line:#dde3ee;
+  --accent:#2f5bea; --accent2:#5d86ff; --afg:#fff;
+  --ok:#0b7f57; --okbg:#e2f4ec;
+  --warn:#b45309; --warnbg:#fdf2e3; --danger:#cf3128; --dangerbg:#fdebe9;
+  --shadow:0 1px 2px rgba(19,26,44,.05),0 8px 24px -14px rgba(19,26,44,.32);
+  --r:16px;
+}
+@media (prefers-color-scheme:dark){
+ :root{
+  --bg:#0b0f17; --card:#141a26; --card2:#101521; --fg:#e7ecf7; --muted:#9ba6be; --line:#263046;
+  --accent:#7c9eff; --accent2:#a3bbff; --afg:#0b1430;
+  --ok:#34d399; --okbg:#0b2a21;
+  --warn:#fbbf24; --warnbg:#2b2210; --danger:#ff7b72; --dangerbg:#3a1614;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -16px rgba(0,0,0,.85);
+ }
+}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);line-height:1.55;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Malgun Gothic","Apple SD Gothic Neo",Roboto,sans-serif;
+  word-break:keep-all;overflow-wrap:break-word;
+  -webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:1280px;margin:0 auto;padding:0 14px calc(40px + env(safe-area-inset-bottom))}
+button{font:inherit;color:inherit}
+.hide{display:none !important}
+.nw{white-space:nowrap}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ══ 광고 슬롯 ══ 자리만 비워 두고 화면 폭에 맞는 크기를 AD 가 채운다.
+   크기를 미리 잡아 두어 광고가 늦게 떠도 화면이 밀리지 않는다(애드핏: 광고 공간은 고정되어야 함) */
+.ad-slot{display:flex;align-items:center;justify-content:center;margin:10px auto;max-width:100%}
+.ad-top{width:320px;height:50px;max-width:100%}
+.ad-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;border:1px dashed var(--line);
+  border-radius:8px;background:var(--card2);color:var(--muted);font-size:11px;letter-spacing:.08em;font-weight:600}
+.ad-lab{display:block;text-align:center;font-size:9.5px;font-weight:700;letter-spacing:.14em;color:var(--muted);opacity:.7;margin:12px 0 -4px}
+body.no-ad .ad-slot,.ad-none{display:none !important}
+/* PC 옆 칸 맨 위 320×50 (좁은 화면에서는 숨긴다) */
+@media (max-width:979px){#ad-side{display:none}}
+@media (min-width:980px){#ad-side{margin:14px auto 0}}
+
+/* ── 앱 안(네이버·카카오 WebView) 안내 띠 ── 이미지 저장(내려받기)이 막히는 경우가 많다 */
+.iabar{display:none;align-items:center;gap:10px;margin:10px 0 0;padding:11px 12px;border-radius:12px;
+  background:var(--warnbg);border:1px solid color-mix(in srgb,var(--warn) 34%,transparent);line-height:1.5}
+body.inapp .iabar{display:flex}
+.iabar .ia-t{flex:1 1 auto;min-width:0;font-size:12.5px;font-weight:700;color:var(--fg)}
+.iabar .ia-t small{display:block;font-size:11.5px;font-weight:600;color:var(--muted);margin-top:2px}
+.iabar .ia-go{flex:0 0 auto;font:inherit;font-size:12.5px;font-weight:800;color:#fff;border:0;border-radius:999px;
+  padding:9px 14px;min-height:38px;cursor:pointer;background:linear-gradient(135deg,var(--accent),var(--accent2))}
+@media (prefers-color-scheme:dark){.iabar .ia-go{color:var(--afg)}}
+.iabar .ia-x{flex:0 0 auto;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:transparent;
+  color:var(--muted);font:inherit;font-size:12px;line-height:1;cursor:pointer}
+
+/* ── 하단 오버형 ── 콘텐츠를 가리지 않도록 본문 아래 여백을 같이 늘린다(애드핏: 콘텐츠를 덮는 배치 금지).
+   측정 화면이 보이는 동안·측정 중에는 띄우지 않는다 */
+#anchor{position:fixed;left:0;right:0;bottom:0;z-index:45;display:flex;align-items:center;justify-content:center;
+  background:var(--card);border-top:1px solid var(--line);box-shadow:0 -8px 22px -14px rgba(0,0,0,.55);
+  padding:8px 4px calc(8px + env(safe-area-inset-bottom));transform:translateY(120%);
+  visibility:hidden;pointer-events:none;transition:transform .22s,visibility 0s linear .22s}
+#anchor.on{transform:none;visibility:visible;pointer-events:auto;transition:transform .22s,visibility 0s}
+#anchor .ad-slot{margin:0}
+#anchor .amk{position:absolute;left:10px;top:-11px;font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--muted);
+  background:var(--card);border:1px solid var(--line);border-radius:5px;padding:0 5px;line-height:15px}
+/* 닫기는 광고 영역 밖에 둔다 — 광고 안에 닫기 버튼을 넣는 것은 금지(오클릭 방지) */
+#anchor .axl{position:absolute;right:6px;top:-38px;width:36px;height:36px;border-radius:50%;cursor:pointer;
+  border:1px solid var(--line);background:var(--card);color:var(--muted);font-size:13px;line-height:1;box-shadow:var(--shadow)}
+#anchor .axl::before{content:'';position:absolute;inset:-6px}
+body.anch .wrap{padding-bottom:calc(124px + env(safe-area-inset-bottom))}
+body.anch #toast{bottom:calc(118px + env(safe-area-inset-bottom))}
+@media (min-width:980px){#anchor{display:none}}
+
+/* ── 결과 카드 ── 화면을 덮지 않고 흐름 안에 펼친다 */
+#doneCard{border-color:color-mix(in srgb,var(--ok) 40%,var(--line))}
+#doneCard .ad-lab{margin-top:16px}
+.dmsg{margin:0 0 10px;font-size:14px;font-weight:700;line-height:1.6}
+.dsteps{margin:0;padding:0 0 0 20px;font-size:13px;font-weight:600;line-height:1.75;color:var(--muted)}
+.dsteps b{color:var(--fg);font-weight:800}
+#doneImg{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:10px;margin:10px 0 0}
+.dimgnote{font-size:11.5px;font-weight:600;color:var(--muted);margin:6px 0 0;text-align:center}
+
+/* ── 배치 ── 휴대폰: 측정 → 이번 측정 · 내 기록 → 설명 / PC: 왼쪽 측정 · 설명, 오른쪽 옆 칸 */
+.layout{display:flex;flex-direction:column}
+.colm{display:contents}
+.l-test{order:1}
+.side{order:2}
+.l-info{order:3}
+@media (min-width:980px){
+  .layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:0 16px;align-items:start}
+  .colm{display:block}
+  .side{position:sticky;top:8px;max-height:calc(100vh - 16px);overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;padding:0 2px 2px}
+  .side .card{margin-top:12px}
+}
+
+header{text-align:center;padding:14px 0 2px}
+.logo{display:inline-flex;align-items:center;gap:9px;font-size:22px;font-weight:800;letter-spacing:-.02em;margin:0}
+.logo .ico{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:17px;color:#fff;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:var(--shadow)}
+.tag{font-size:14.5px;font-weight:600;color:var(--muted);margin:7px 0 0;text-wrap:balance}
+.tag b{color:var(--fg)}
+.badges{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:9px}
+.badge{font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--okbg);color:var(--ok)}
+.badge.gray{background:var(--card2);color:var(--muted);border:1px solid var(--line)}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:16px;margin-top:14px}
+.card h2{font-size:12px;font-weight:800;color:var(--muted);margin:0 0 12px;letter-spacing:.07em;
+  display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.card h2 .n{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:6px;margin-right:6px;
+  background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent);letter-spacing:0;font-size:11.5px}
+.card h3{font-size:15px;font-weight:800;margin:18px 0 8px;letter-spacing:-.01em}
+.card h3:first-of-type{margin-top:4px}
+.card p.tx{font-size:13.5px;color:var(--muted);line-height:1.8;margin:0 0 8px}
+.card p.tx b{color:var(--fg)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:var(--card2);
+  font-size:13.5px;font-weight:800;padding:8px 12px;border-radius:12px;cursor:pointer;min-height:46px;transition:.12s;text-decoration:none;color:var(--fg)}
+.btn:hover{border-color:var(--accent)}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.45;cursor:default;transform:none}
+.btn.pri{border-color:transparent;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:var(--shadow)}
+@media (prefers-color-scheme:dark){.btn.pri{color:var(--afg)}}
+.btn.sm{min-height:36px;padding:4px 12px;font-size:12.5px;letter-spacing:0}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.btns .btn{flex:1 1 140px}
+.small{font-size:12px;font-weight:600;color:var(--muted);line-height:1.65;margin:8px 0 0}
+.small b{color:var(--fg)}
+
+/* ══ 측정 화면 ══ 색이 바뀌는 순간이 늦어지지 않게 transition 은 쓰지 않는다.
+   빨강/초록만으로 구별하지 않는다 — 밝기(어두운 빨강 → 밝은 초록)와 글자(기다리세요 → 지금!)·그림이 함께 바뀐다 */
+.stcard{padding:12px}
+.stcard h2{margin:2px 4px 10px}
+.hzc{font-size:11.5px;font-weight:700;letter-spacing:0;color:var(--muted);background:var(--card2);border:1px solid var(--line);
+  border-radius:999px;padding:3px 10px}
+.hzc b{color:var(--fg)}
+.stage{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+  height:clamp(300px,58vh,500px);border-radius:14px;cursor:pointer;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
+  touch-action:manipulation;outline:none;padding:44px 16px 40px;overflow:hidden;
+  color:#fff;background:#2f5bea}
+.stage:focus-visible{box-shadow:0 0 0 3px var(--card),0 0 0 6px var(--accent)}
+.stage[data-st=wait],.stage[data-st=go]{touch-action:none}
+.stage[data-st=idle],.stage[data-st=result]{background:#2f5bea;color:#fff}
+.stage[data-st=wait]{background:#a51b1b;color:#fff}
+.stage[data-st=go]{background:#47d16c;color:#08290f}
+.stage[data-st=early]{background:#f59f00;color:#2b1a00}
+.stage[data-st=done]{background:#1d2b55;color:#fff}
+.st-top{position:absolute;left:14px;right:14px;top:12px;display:flex;justify-content:space-between;align-items:center;gap:10px;
+  font-size:13px;font-weight:800;opacity:.92}
+.dots{display:flex;gap:6px}
+.dots i{width:11px;height:11px;border-radius:50%;border:2px solid currentColor;opacity:.55}
+.dots i.on{background:currentColor;opacity:.95}
+.dots i.cur{opacity:1}
+.st-ic{font-size:46px;line-height:1;margin-bottom:10px}
+.st-big{font-size:clamp(42px,12vw,66px);font-weight:900;letter-spacing:-.03em;line-height:1.08;font-variant-numeric:tabular-nums}
+.st-big small{font-size:.42em;font-weight:800;margin-left:5px;opacity:.85;letter-spacing:0}
+.stage[data-st=go] .st-big{font-size:clamp(70px,20vw,112px)}
+.st-sub{font-size:16px;font-weight:700;margin-top:12px;opacity:.95;text-wrap:balance;line-height:1.5}
+.st-sub b{font-weight:900}
+.st-foot{position:absolute;bottom:13px;left:12px;right:12px;font-size:12.5px;font-weight:700;opacity:.85}
+.stnote{display:flex;flex-wrap:wrap;gap:4px 14px;justify-content:center;margin:10px 4px 2px;font-size:12px;font-weight:600;color:var(--muted)}
+.stnote b{color:var(--fg)}
+
+/* ── 이번 측정 · 내 기록 ── */
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.st{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:8px 10px;min-width:0}
+.st span{display:block;font-size:11px;letter-spacing:-.02em;font-weight:800;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st b{display:block;font-size:20px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.25;white-space:nowrap}
+.st b small{font-size:12px;color:var(--muted);font-weight:800;margin-left:2px}
+.st.hi{background:var(--okbg);border-color:color-mix(in srgb,var(--ok) 35%,transparent)}
+.st.hi span,.st.hi b{color:var(--ok)}
+.rounds{list-style:none;margin:12px 0 0;padding:0}
+.rounds li{display:grid;grid-template-columns:38px minmax(0,1fr) 78px;align-items:center;gap:8px;padding:5px 0;font-size:13px;font-weight:700}
+.rounds .rn{color:var(--muted)}
+.rounds .rb{height:12px;border-radius:6px;background:var(--card2);border:1px solid var(--line);overflow:hidden}
+.rounds .rb i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:6px}
+.rounds .rv{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.rounds li.best .rv{color:var(--ok)}
+.rounds li.best .rb i{background:var(--ok)}
+.rounds li.cur .rn{color:var(--accent)}
+.chip{display:inline-block;font-size:10.5px;font-weight:800;padding:1px 6px;border-radius:999px;background:var(--okbg);color:var(--ok);margin-left:4px;vertical-align:1px}
+.rmeta{font-size:12px;font-weight:600;color:var(--muted);margin:10px 0 0;line-height:1.6}
+.rmeta b{color:var(--fg)}
+.trend{display:flex;align-items:flex-end;gap:3px;height:64px;margin:12px 0 2px;padding:0 2px;border-bottom:1px solid var(--line)}
+.trend i{flex:1 1 0;min-width:3px;max-width:22px;border-radius:4px 4px 0 0;background:color-mix(in srgb,var(--accent) 55%,var(--card2))}
+.trend i.best{background:var(--ok)}
+.trend i.last{background:var(--accent)}
+.tcap{display:flex;justify-content:space-between;font-size:11px;font-weight:600;color:var(--muted);margin-top:4px}
+.hist{list-style:none;margin:10px 0 0;padding:0}
+.hist li{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:8px 0;border-top:1px solid var(--line);font-size:12.5px;font-weight:600;color:var(--muted)}
+.hist li:first-child{border-top:0}
+.hist li b{color:var(--fg);font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}
+.hist .hd{white-space:nowrap}
+.hist .hv{text-align:right}
+.empty{font-size:13px;font-weight:600;color:var(--muted);text-align:center;padding:14px 6px;margin:0}
+
+/* ── 설명 ── */
+.steps{margin:0;padding:0;list-style:none;counter-reset:s}
+.steps li{position:relative;padding:0 0 10px 34px;font-size:13.5px;font-weight:600;color:var(--muted);line-height:1.7;counter-increment:s}
+.steps li::before{content:counter(s);position:absolute;left:0;top:1px;width:24px;height:24px;border-radius:8px;display:grid;place-items:center;
+  font-size:12px;font-weight:800;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent)}
+.steps li b{color:var(--fg)}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;margin:4px 0 6px}
+.tbl th,.tbl td{border-top:1px solid var(--line);padding:8px 6px;text-align:left;vertical-align:top;line-height:1.6}
+.tbl th{white-space:nowrap;font-weight:800;color:var(--fg);width:30%}
+.tbl td{color:var(--muted);font-weight:600}
+.tbl td b{color:var(--fg)}
+.tbl tr:first-child th,.tbl tr:first-child td{border-top:0}
+.tips{margin:0;padding:0;list-style:none}
+.tips li{position:relative;padding:0 0 9px 26px;font-size:13.5px;font-weight:600;color:var(--muted);line-height:1.7}
+.tips li::before{content:attr(data-i);position:absolute;left:0;top:0;font-size:15px}
+.tips li b{color:var(--fg)}
+details.faq{border-top:1px solid var(--line);padding:12px 0}
+details.faq:first-of-type{border-top:0}
+details.faq summary{cursor:pointer;font-weight:700;font-size:14px;list-style:none;padding:10px 0;margin:-10px 0}
+details.faq summary::-webkit-details-marker{display:none}
+details.faq summary::before{content:"＋ ";color:var(--accent);font-weight:800}
+details.faq[open] summary::before{content:"－ "}
+details.faq p{margin:8px 0 0;font-size:13.5px;color:var(--muted);line-height:1.8}
+details.faq p b{color:var(--fg)}
+.nbx{border:1px solid var(--warn);border-radius:14px;background:var(--warnbg);padding:14px 15px;margin-top:14px}
+.nbx-h{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:800;color:var(--warn);margin:0 0 10px}
+.nbx-h .ic{flex:0 0 auto;width:19px;height:19px;border-radius:6px;background:var(--warn);color:var(--warnbg);
+  font-size:12px;font-weight:800;display:grid;place-items:center;line-height:1}
+.nbx ul{list-style:none;margin:0;padding:0}
+.nbx li{position:relative;padding-left:12px;margin-bottom:7px;font-size:12px;font-weight:600;line-height:1.68;color:var(--warn)}
+.nbx li:last-child{margin-bottom:0}
+.nbx li::before{content:"·";position:absolute;left:1px;top:-1px;font-weight:800}
+.nbx li b{font-weight:800}
+.nbx .nbx-f{margin:11px 0 0;padding-top:10px;border-top:1px solid color-mix(in srgb,var(--warn) 32%,transparent);
+  font-size:12px;font-weight:700;line-height:1.72;color:var(--warn)}
+
+footer{text-align:center;color:var(--muted);font-size:12px;margin-top:22px;line-height:1.8}
+footer b{color:var(--fg)}
+#toast{position:fixed;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:#131a2c;color:#fff;font-size:13.5px;
+  font-weight:700;line-height:1.5;padding:10px 16px;border-radius:14px;width:max-content;opacity:0;pointer-events:none;transition:.25s;z-index:300;
+  max-width:92vw;text-align:center}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+@media (prefers-color-scheme:dark){#toast{background:#e7ecf7;color:#0b1430}}
+
+@media (min-width:980px){
+  .stage{height:460px}
+  .st-big{font-size:72px}
+  .stage[data-st=go] .st-big{font-size:120px}
+  .st-sub{font-size:17px}
+}
+@media (max-width:520px){
+  .card{padding:13px}
+  .stcard{padding:10px}
+  .tag{font-size:13.5px}
+  .badges{display:none}
+  .stats .st b{font-size:18px}
+}
+@media (max-width:360px){
+  .st-sub{font-size:14.5px}
+  .rounds li{grid-template-columns:34px minmax(0,1fr) 70px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ╔══════════════════════════════════════════════════════════════════════╗
+     ║  광고 자리 ① 맨 위 · 320×50 (모바일·PC 같은 크기)                     ║
+     ║  단위 ID 는 스크립트 아래쪽 AD.units 한 곳에서 바꿉니다.               ║
+     ║  ID 가 DAN-XXXX 그대로면 점선 자리만 그리고 광고 요청은 보내지 않습니다 ║
+     ║  모바일 ① 맨 위 ④ 결과 카드 ⑤ 하단 오버형                            ║
+     ║  PC     ① 맨 위 ② 옆 칸 위 ④ 결과 카드  (본문 ③ 자리는 두지 않음)     ║
+     ║  측정 화면은 연달아 누르는 곳이라 바로 옆·바로 아래에는 광고를 두지 않습니다 ║
+     ╚══════════════════════════════════════════════════════════════════════╝ -->
+<div class="ad-slot ad-top" id="ad-top"></div>
+
+<!-- 네이버·카카오 앱 안에서 열렸을 때만 보이는 띠 (body.inapp)
+     측정은 앱 안에서도 되므로 화면을 막지 않는다. 결과 이미지 저장만 막힐 수 있다 -->
+<div class="iabar" id="iabar">
+  <div class="ia-t"><span id="iaMsg">앱 안에서는 결과 이미지 저장이 막힐 수 있어요.</span>
+    <small id="iaSub">측정과 기록은 여기서도 됩니다. 이미지를 저장하려면 브라우저에서 열어 주세요.</small></div>
+  <button class="ia-go" id="iaGo" type="button">크롬에서 열기</button>
+  <button class="ia-x" id="iaX" type="button" aria-label="안내 닫기">✕</button>
+</div>
+
+<header>
+  <h1 class="logo"><span class="ico">⚡</span><span>반응속도 테스트</span></h1>
+  <p class="tag">화면이 <b>초록</b>으로 바뀌는 순간 누르세요 — <b>5번</b> 재서 평균과 최고 기록을 보여 줍니다</p>
+  <div class="badges">
+    <span class="badge">🔒 기록은 이 기기에만 · 어디에도 전송 안 함</span>
+    <span class="badge gray">부정 출발 자동 판정</span>
+    <span class="badge gray">결과 이미지 저장</span>
+    <span class="badge gray">무료 · 설치 없음</span>
+  </div>
+</header>
+
+<div class="layout">
+<div class="colm">
+
+<section class="l-test card stcard" id="testCard" aria-labelledby="testH">
+  <h2><span id="testH"><span class="n">1</span>반응속도 측정 · 5회</span><span class="hzc" id="hzChip">화면 주사율 확인 중…</span></h2>
+  <div class="stage" id="stage" data-st="idle" role="button" tabindex="0" aria-describedby="stSub">
+    <div class="st-top"><span id="stRound">1 / 5회</span><span class="dots" id="dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></div>
+    <div class="st-ic" id="stIc" aria-hidden="true">⚡</div>
+    <div class="st-big" id="stBig">눌러서 시작</div>
+    <div class="st-sub" id="stSub">화면이 <b>초록</b>으로 바뀌는 순간 누르세요</div>
+    <div class="st-foot" id="stFoot">화면 아무 곳 탭 · 클릭 · 스페이스바</div>
+  </div>
+  <p class="sr" id="stLive" aria-live="assertive"></p>
+  <div class="stnote"><span>기다리는 시간 <b>1.5~4.5초</b> 무작위</span><span>초록 전에 누르면 <b>부정 출발</b> · 그 회차만 다시</span><span>화면은 한 번만 바뀌고 <b>깜빡이지 않아요</b></span></div>
+</section>
+
+<div class="l-info">
+  <section class="card" id="howCard">
+    <h2><span><span class="n">4</span>쓰는 법</span></h2>
+    <ol class="steps">
+      <li><b>화면을 눌러 시작</b>하세요. 휴대폰은 손가락으로 톡, PC는 마우스 클릭이나 <b>스페이스바 · 엔터</b>도 됩니다.</li>
+      <li>빨간 <b>「기다리세요」</b> 화면이 뜨면 손을 준비하고 기다립니다. 1.5~4.5초 사이 아무 때나 바뀌어요.</li>
+      <li>밝은 초록 <b>「지금!」</b>으로 바뀌는 순간 누르세요. 걸린 시간이 <b>ms(1000분의 1초)</b>로 나옵니다.</li>
+      <li>5번을 다 재면 <b>평균 · 최고 기록</b>이 나오고 아래 <b>내 기록</b>에 쌓입니다. 「이미지 저장」으로 결과 카드를 PNG로 남길 수 있어요.</li>
+    </ol>
+    <p class="small">초록이 되기 전에 누르면 <b>부정 출발</b>로 그 회차는 기록하지 않고 다시 잽니다. 몇 번 했는지는 결과에 함께 남아요.</p>
+  </section>
+
+  <section class="card" id="whyCard">
+    <h2><span><span class="n">5</span>결과가 기기마다 다른 이유</span></h2>
+    <p class="tx">여기 나오는 시간은 <b>눈 · 손의 반응</b>에 <b>기기가 늦는 만큼</b>이 더해진 값입니다. 같은 사람이라도 기기 · 화면 · 입력 방법이 바뀌면 기록이 달라져요.</p>
+    <table class="tbl">
+      <tr><th>화면 주사율</th><td>화면은 정해진 간격으로만 새로 그려집니다. <b>60Hz는 한 장에 약 16.7ms</b>, 120Hz는 약 8.3ms, 144Hz는 약 6.9ms라서 초록이 실제로 보이는 때가 그만큼 늦을 수 있어요. 위 칩에 이 기기의 값이 나옵니다.</td></tr>
+      <tr><th>입력 장치</th><td>터치 화면 · 무선(블루투스) 마우스 · 키보드는 누른 신호가 브라우저에 닿기까지 걸리는 시간이 기기마다 다릅니다.</td></tr>
+      <tr><th>화면 자체 지연</th><td>모니터 · TV가 영상을 처리하는 시간은 이 도구가 잴 수 없어서 기록에 그대로 들어갑니다.</td></tr>
+      <tr><th>기기 상태</th><td>절전 모드, 다른 앱 · 탭이 무거울 때는 화면이 늦게 바뀌거나 입력이 늦게 잡힐 수 있어요.</td></tr>
+    </table>
+    <p class="small">이 도구는 초록 화면을 그리기 시작한 <b>프레임 시각</b>부터 브라우저가 누름을 받은 <b>입력 시각</b>까지를 잽니다(performance.now · 이벤트 시각). 그래서 기록을 <b>다른 사람과 견주기보다</b>, 같은 기기 · 같은 방법으로 잰 <b>내 기록끼리</b> 비교하는 데 쓰세요.</p>
+  </section>
+
+  <section class="card" id="tipCard">
+    <h2><span><span class="n">6</span>기록을 공정하게 올리려면</span></h2>
+    <ul class="tips">
+      <li data-i="🖱️"><b>PC + 유선 마우스</b>가 입력 지연이 가장 적은 편입니다. 무선이면 수신기를 가까이, 배터리를 넉넉히.</li>
+      <li data-i="🖥️">모니터에 <b>게임 모드 · 저지연 모드</b>가 있으면 켜 보세요. 고주사율 모니터라면 설정에서 최고 주사율로 맞춰 두세요.</li>
+      <li data-i="🔋">휴대폰은 <b>절전 모드를 끄고</b>, 다른 앱 · 탭을 닫은 뒤 재 보세요.</li>
+      <li data-i="✋">손가락이나 마우스를 <b>미리 대고</b> 기다리세요. 화면 한가운데를 보고 있으면 바뀌는 순간을 놓치지 않아요.</li>
+      <li data-i="🔁">처음 몇 번은 낯설어서 들쭉날쭉할 수 있어요. <b>몇 번 해 본 뒤</b>, 한 번 기록보다 <b>5번 평균</b>으로 보세요.</li>
+      <li data-i="📏">비교할 땐 <b>같은 기기 · 같은 입력 방법</b>으로. 휴대폰 기록과 PC 기록은 따로 보는 게 맞아요.</li>
+    </ul>
+  </section>
+
+  <section class="card" id="faqCard">
+    <h2><span><span class="n">7</span>자주 묻는 질문</span></h2>
+    <details class="faq"><summary>몇 ms면 빠른 건가요?</summary>
+      <p>기기 · 화면 · 입력 방법에 따라 같은 사람도 기록이 꽤 달라져서, 이 도구는 <b>등급이나 「상위 몇 %」를 매기지 않습니다.</b> 같은 기기에서 잰 내 기록의 흐름(아래 <b>내 기록</b> 막대)을 보는 게 가장 정확해요.</p></details>
+    <details class="faq"><summary>휴대폰이 PC보다 느리게 나와요.</summary>
+      <p>터치 화면은 손가락을 알아채고 브라우저에 넘기기까지 시간이 걸리고, 그 시간은 기종마다 다릅니다. 손이 느려서라기보다 <b>기기 차이</b>일 수 있으니 휴대폰 기록은 휴대폰끼리 비교하세요.</p></details>
+    <details class="faq"><summary>부정 출발은 어떻게 판정하나요?</summary>
+      <p>초록 화면이 그려지기 전에 누르면 부정 출발입니다. 그 회차는 기록하지 않고 같은 회차를 다시 재요. 기다리는 시간은 매번 <b>1.5~4.5초 사이에서 무작위</b>라 박자를 외워서 누를 수 없습니다.</p></details>
+    <details class="faq"><summary>기록은 어디에 저장되나요?</summary>
+      <p>이 브라우저 안(localStorage)에만 저장되고 <b>서버로 보내지 않습니다.</b> 브라우저 기록을 지우거나 다른 기기에서 열면 보이지 않아요. 지우려면 내 기록의 「기록 지우기」를 누르세요.</p></details>
+    <details class="faq"><summary>스페이스바로도 되나요?</summary>
+      <p><b>스페이스바 · 엔터</b> 모두 됩니다. 키보드도 기종에 따라 신호가 늦는 정도가 달라서, 마우스로 잰 기록과는 따로 보는 게 좋아요. 키를 누른 채로 있으면 처음 한 번만 셉니다.</p></details>
+    <details class="faq"><summary>네이버 앱에서 열었는데 이미지가 저장되지 않아요.</summary>
+      <p>앱 안 화면은 파일 내려받기를 막아 두는 경우가 많습니다. 결과 카드에 뜬 <b>이미지를 길게 눌러 저장</b>하거나, 위쪽 안내의 단추로 크롬 · 사파리에서 열어 주세요.</p></details>
+  </section>
+
+  <div class="nbx">
+    <div class="nbx-h"><span class="ic">!</span><span>쓰기 전에 확인하세요</span></div>
+    <ul>
+      <li><b>재미 · 연습용 참고 기록입니다.</b> 건강 상태, 운전 능력, 집중력 같은 것을 판단하는 검사가 아니며 그런 판단에 쓰면 안 됩니다.</li>
+      <li>시간은 브라우저가 받은 신호로 잽니다. 화면 · 입력 장치 · 기기 상태에 따른 지연이 기록에 함께 들어갑니다.</li>
+      <li>측정 중에는 화면이 빨강에서 초록으로 <b>한 번</b> 바뀝니다. 빛에 민감한 분은 화면 밝기를 낮추고 쓰세요.</li>
+    </ul>
+    <p class="nbx-f">이 도구는 <b>있는 그대로 제공되며</b>, 결과를 믿고 한 결정이나 사용 중 생긴 어떠한 손해에 대해서도 <b>제작자와 운영자는 법적 책임을 지지 않습니다.</b></p>
+  </div>
+</div>
+
+</div>
+
+<aside class="side" id="side">
+  <!-- 광고 자리 ② PC 옆 칸 맨 위 · 320×50 (좁은 화면에서는 숨김) -->
+  <div class="ad-slot" id="ad-side"></div>
+
+  <section class="card" id="resCard" aria-labelledby="resH">
+    <h2><span id="resH"><span class="n">2</span>이번 측정</span><span id="resState">0 / 5회</span></h2>
+    <div class="stats">
+      <div class="st"><span>평균</span><b id="sAvg">—</b></div>
+      <div class="st hi"><span>최고 기록</span><b id="sBest">—</b></div>
+      <div class="st"><span>부정 출발</span><b id="sEarly">0<small>회</small></b></div>
+    </div>
+    <ol class="rounds" id="rounds"></ol>
+    <p class="rmeta" id="resMeta">입력 <b>—</b> · 화면 <b>—</b></p>
+    <div class="btns">
+      <button class="btn pri" id="btnPng" type="button" disabled>🖼️ 이미지 저장</button>
+      <button class="btn" id="btnReset" type="button">↺ 처음부터 다시</button>
+    </div>
+  </section>
+
+  <section class="card hide" id="doneCard">
+    <h2><span id="doneTitle">5번 측정을 마쳤습니다</span><button class="btn sm" id="doneHide" type="button">닫기</button></h2>
+    <p class="dmsg" id="doneMsg"></p>
+    <ol class="dsteps" id="doneSteps"></ol>
+    <img id="doneImg" class="hide" alt="반응속도 테스트 결과 이미지">
+    <p class="dimgnote hide" id="doneImgNote">휴대폰에서는 이미지를 길게 눌러 사진으로 저장할 수도 있습니다</p>
+    <div id="doneAd"><span class="ad-lab">광고</span><div class="ad-slot" id="ad-done"></div></div>
+  </section>
+
+  <section class="card" id="histCard" aria-labelledby="histH">
+    <h2><span id="histH"><span class="n">3</span>내 기록 · 이 기기</span><button class="btn sm" id="btnClear" type="button">기록 지우기</button></h2>
+    <div id="histBody"></div>
+  </section>
+</aside>
+</div>
+
+<footer>
+  <b>반응속도 테스트</b> · 설치 없이 브라우저에서<br>
+  시간은 performance.now · 화면을 그린 프레임 시각과 입력 이벤트 시각으로 잼 · 외부 라이브러리 없음<br>
+  기록은 이 기기에만 저장되며 어디에도 전송되지 않고, 페이지를 연 뒤에는 인터넷 없이도 동작합니다.
+</footer>
+</div>
+
+<!-- 광고 자리 ⑤ 하단 오버형 320×50(모바일) — 설명을 읽는 구간에서만 올라오고, 측정 화면이 보이거나 측정 중이면 내려가 있습니다 -->
+<div id="anchor"><span class="amk">광고</span><div class="ad-slot" id="ad-anchor"></div>
+  <button class="axl" id="anchorX" type="button" aria-label="광고 닫기">✕</button></div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+<script>
+"use strict";
+/* ════════════════════════════════════════════════════════════
+   반응속도 테스트
+   · 기다리는 시간: 1.5~4.5초 무작위(setTimeout) → 초록으로 바꾼 뒤 처음 오는 requestAnimationFrame 의 프레임 시각을 출발 시각(t0)으로
+   · 누른 시각: pointerdown · keydown 이벤트의 timeStamp(이벤트가 생긴 시각 — 메인 스레드가 바빠 늦게 처리돼도 앞당겨 잡힌다)
+   · 반응 시간 = 누른 시각 − t0. t0 전에 누르면(아직 초록이 그려지지 않았으면) 부정 출발
+   · 터치: 측정 중(기다리세요 · 지금!)에는 손가락이 닿는 순간(pointerdown)에 잡고, 시작 · 다음 회차는 탭이 끝난 click 에서 —
+     스크롤하려고 화면을 쓸어도 측정이 시작되지 않게
+   · 보조 기술(스크린 리더)의 누르기처럼 pointerdown 없이 오는 click 도 받는다
+   ════════════════════════════════════════════════════════════ */
+const $ = id => document.getElementById(id);
+const pad = n => (n < 10 ? '0' : '') + n;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+let toastT = 0;
+function toast(msg, ms){
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), ms || 2800);
+}
+function onScreen(el, m){
+  if (!el || el.classList.contains('hide')) return false;
+  const r = el.getBoundingClientRect(), k = m || 0;
+  return r.height > 0 && r.bottom > k && r.top < window.innerHeight - k;
+}
+const UA = navigator.userAgent || '';
+const IS_IOS = /iPhone|iPad|iPod/i.test(UA) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const IN_FRAME = window.top !== window.self;
+const WD = ['일', '월', '화', '수', '목', '금', '토'];
+
+const ROUNDS = 5, MIN_WAIT = 1500, MAX_WAIT = 4500;
+const KEY = 'reaction_test.v1';
+const KIND = {mouse: '마우스', touch: '터치', pen: '펜', key: '키보드', click: '기타 입력'};
+const fmt = v => String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+/* ── 상태 ── */
+const R = {st: 'idle', times: [], kinds: [], early: 0, timer: 0, tGo: 0, t0: 0, lock: 0,
+           ptrDone: false, ptrAt: 0, ptrType: ''};
+let HIST = [];
+const HZ = {v: 0, busy: false};
+
+function loadHist(){
+  try {
+    const o = JSON.parse(localStorage.getItem(KEY) || '{}');
+    if (Array.isArray(o.hist)) HIST = o.hist.filter(h => h && Array.isArray(h.times) && h.times.length === ROUNDS &&
+      h.times.every(x => typeof x === 'number' && isFinite(x)) && typeof h.t === 'number').slice(0, 200);
+  } catch (e) { HIST = []; }
+}
+function saveHist(){
+  try { localStorage.setItem(KEY, JSON.stringify({v: 1, hist: HIST.slice(0, 200)})); } catch (e) { /* 저장 공간이 막혀 있으면 이번 화면에서만 */ }
+}
+
+/* ── 측정 화면 그리기 ── */
+const stage = $('stage');
+function paint(st, ic, big, sub, foot, say){
+  R.st = st;
+  stage.dataset.st = st;
+  $('stIc').textContent = ic;
+  $('stBig').innerHTML = big;
+  $('stSub').innerHTML = sub;
+  $('stFoot').textContent = foot;
+  const n = R.times.length, cur = Math.min(n + 1, ROUNDS);
+  $('stRound').textContent = (st === 'done' ? ROUNDS : st === 'result' ? n : cur) + ' / ' + ROUNDS + '회';
+  [...$('dots').children].forEach((d, i) => {
+    d.classList.toggle('on', i < n);
+    d.classList.toggle('cur', i === n && st !== 'done');
+  });
+  stage.setAttribute('aria-label', say);
+  $('stLive').textContent = say;
+}
+function paintIdle(sub){
+  paint('idle', '⚡', '눌러서 시작', sub || '화면이 <b>초록</b>으로 바뀌는 순간 누르세요', '화면 아무 곳 탭 · 클릭 · 스페이스바',
+    '반응속도 측정 화면. 눌러서 시작하세요.');
+}
+
+function startWait(){
+  clearTimeout(R.timer);
+  if (R.st === 'done' || R.times.length >= ROUNDS) newSession();
+  paint('wait', '✋', '기다리세요', '초록으로 바뀌면 바로 누르세요', '미리 누르면 부정 출발', '기다리세요');
+  R.t0 = 0;
+  const d = MIN_WAIT + Math.random() * (MAX_WAIT - MIN_WAIT);
+  R.timer = setTimeout(goGreen, d);
+  updateAnchor();
+}
+function goGreen(){
+  R.t0 = 0;
+  paint('go', '👆', '지금!', '누르세요!', '', '지금! 누르세요');
+  R.tGo = performance.now();
+  /* 바꾼 화면이 그려질 프레임 — 그 프레임의 시각을 출발로 본다 */
+  requestAnimationFrame(ts => { if (R.st === 'go' && !R.t0) R.t0 = Math.max(ts, R.tGo); });
+}
+function falseStart(){
+  clearTimeout(R.timer);
+  R.early++;
+  paint('early', '⚠️', '너무 빨라요!', '초록이 되기 전에 눌렀어요 · <b>부정 출발</b>', '탭하면 이 회차를 다시 재요',
+    '너무 빨라요. 부정 출발입니다. 다시 눌러 이 회차를 다시 재세요.');
+  R.lock = performance.now() + 350;
+  renderRes();
+}
+function hit(ms, kind){
+  R.times.push(ms); R.kinds.push(kind);
+  const n = R.times.length;
+  if (n >= ROUNDS) { finish(); return; }
+  const prevBest = n > 1 ? Math.min(...R.times.slice(0, -1)) : Infinity;
+  const sub = n + '회째 · 남은 ' + (ROUNDS - n) + '회' + (n > 1 && ms < prevBest ? ' · <b>이번 측정 최고!</b>' : '');
+  paint('result', '⏱️', fmt(ms) + '<small>ms</small>', sub, '탭하면 다음 회차',
+    n + '회째 ' + fmt(ms) + '밀리초. 눌러서 다음 회차.');
+  R.lock = performance.now() + 300;
+  renderRes();
+}
+function summary(){
+  const t = R.times.map(x => Math.round(x * 10) / 10);         /* 기록 · 이미지 · 「최고」 표시가 같은 값을 쓰게 0.1ms 로 맞춘다 */
+  const avg = t.reduce((a, b) => a + b, 0) / t.length;
+  const ks = [...new Set(R.kinds)].map(k => KIND[k] || k);
+  return {t: Date.now(), times: t, avg: Math.round(avg * 10) / 10,
+          best: Math.min(...t), worst: Math.max(...t), early: R.early, input: ks.join(' · '), hz: HZ.v || 0};
+}
+function finish(){
+  const s = summary();
+  R.last = s;
+  HIST.unshift(s); saveHist();
+  paint('done', '🏁', '평균 ' + fmt(s.avg) + '<small>ms</small>',
+    '최고 <b>' + fmt(s.best) + ' ms</b> · 5회 · 부정 출발 ' + s.early + '회', '탭하면 처음부터 다시 재요',
+    '5회 측정 끝. 평균 ' + fmt(s.avg) + '밀리초, 최고 ' + fmt(s.best) + '밀리초.');
+  R.lock = performance.now() + 1000;     /* 마지막 누름이 튀어 바로 새 측정이 시작되지 않게 */
+  renderRes(); renderHist();
+  $('btnPng').disabled = false;
+  const prev = HIST.slice(1).filter(h => h.input === s.input);
+  const pb = prev.length ? Math.min(...prev.map(h => h.avg)) : 0;
+  AD.done('5번 측정을 마쳤습니다',
+    '평균 ' + fmt(s.avg) + ' ms · 최고 ' + fmt(s.best) + ' ms' + (pb && s.avg < pb ? ' — 같은 입력(' + s.input + ')으로 잰 기록 가운데 가장 빠른 평균이에요.' : ''),
+    ['<b>이미지 저장</b>으로 결과 카드를 남기거나, 화면을 다시 눌러 한 번 더 재 보세요.',
+     '기록은 <b>같은 기기 · 같은 입력 방법</b>끼리 비교해야 정확합니다.',
+     '화면 · 입력 장치 지연이 함께 들어간 <b>참고용</b> 기록이에요.']);
+}
+function newSession(){
+  R.times = []; R.kinds = []; R.early = 0; R.last = null;
+  $('btnPng').disabled = true;
+  AD.hideDone();
+  renderRes();
+}
+
+/* 누름 하나 — ts 는 이벤트가 생긴 시각 */
+function press(ts, kind){
+  if (performance.now() < R.lock) return;
+  if (R.st === 'go') {
+    if (!R.t0 || ts < R.t0) { falseStart(); return; }      /* 초록이 아직 그려지지 않았다 */
+    hit(ts - R.t0, kind);
+    return;
+  }
+  if (R.st === 'wait') { falseStart(); return; }
+  startWait();
+}
+function evTime(e){
+  const now = performance.now(), t = e && e.timeStamp;
+  return (t > 0 && Math.abs(now - t) < 2000) ? t : now;
+}
+stage.addEventListener('pointerdown', e => {
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  R.ptrType = e.pointerType || 'mouse';
+  R.ptrAt = performance.now();
+  const timed = R.st === 'wait' || R.st === 'go';
+  if (e.pointerType === 'mouse') e.preventDefault();          /* 글자 선택 · 포커스 이동 막기 */
+  if (timed || e.pointerType !== 'touch') { R.ptrDone = true; press(evTime(e), R.ptrType); }
+  else R.ptrDone = false;                                        /* 터치로 시작 · 다음 회차는 탭이 끝난 click 에서 */
+});
+stage.addEventListener('pointercancel', () => { R.ptrDone = false; });
+stage.addEventListener('click', e => {
+  if (R.ptrDone && performance.now() - R.ptrAt < 1500) { R.ptrDone = false; return; }   /* pointerdown 에서 이미 셈 */
+  R.ptrDone = false;
+  const kind = e.detail === 0 ? 'click' : (R.ptrType || 'touch');
+  press(performance.now(), kind);
+});
+stage.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+  if (e.key !== ' ' && e.key !== 'Enter' && e.code !== 'Space') return;
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const ae = document.activeElement;
+  if (ae && ae !== document.body && ae !== stage && ae !== document.documentElement) return;   /* 다른 단추 · 링크의 엔터는 그대로 */
+  if (!onScreen(stage, 80) && R.st !== 'wait' && R.st !== 'go') return;                        /* 측정 화면이 안 보이면 스페이스바는 스크롤 */
+  e.preventDefault();
+  if (e.repeat) return;                                                                         /* 누른 채로 있으면 처음 한 번만 */
+  press(evTime(e), 'key');
+});
+/* 다른 화면으로 가면 그 회차를 멈춘다(세지 않음) */
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    if (R.st === 'wait' || R.st === 'go') { clearTimeout(R.timer); paintIdle('다른 화면으로 가서 이 회차를 멈췄어요 · 탭하면 이어서 재요'); }
+  } else setTimeout(measureHz, 400);
+});
+
+/* ── 이번 측정 ── */
+function renderRes(){
+  const t = R.times, n = t.length;
+  $('resState').textContent = n + ' / ' + ROUNDS + '회';
+  $('sAvg').innerHTML = n ? fmt(t.reduce((a, b) => a + b, 0) / n) + '<small>ms</small>' : '—';
+  $('sBest').innerHTML = n ? fmt(Math.min(...t)) + '<small>ms</small>' : '—';
+  $('sEarly').innerHTML = R.early + '<small>회</small>';
+  const best = n ? Math.min(...t) : -1;
+  const scale = Math.max(500, Math.ceil(Math.max(0, ...t) / 100) * 100);
+  let h = '';
+  for (let i = 0; i < ROUNDS; i++) {
+    const v = t[i];
+    const cls = (v !== undefined && n > 1 && v === best ? 'best' : '') + (i === n && R.st !== 'done' ? ' cur' : '');
+    h += '<li class="' + cls.trim() + '"><span class="rn">' + (i + 1) + '회</span><span class="rb"><i style="width:' +
+      (v === undefined ? 0 : Math.min(100, v / scale * 100).toFixed(1)) + '%"></i></span><span class="rv">' +
+      (v === undefined ? '—' : fmt(v) + ' ms' + (n > 1 && v === best ? '<span class="chip">최고</span>' : '')) + '</span></li>';
+  }
+  $('rounds').innerHTML = h;
+  const ks = [...new Set(R.kinds)].map(k => KIND[k] || k);
+  $('resMeta').innerHTML = '입력 <b>' + (ks.length ? esc(ks.join(' · ')) : '—') + '</b> · 화면 <b>' + (HZ.v ? '약 ' + HZ.v + 'Hz' : '—') + '</b>' +
+    (HZ.v ? ' (한 장 ' + (1000 / HZ.v).toFixed(1) + 'ms)' : '');
+}
+
+/* ── 내 기록 ── */
+let histAll = false;
+function dstr(t){
+  const d = new Date(t);
+  return (d.getMonth() + 1) + '.' + d.getDate() + ' (' + WD[d.getDay()] + ') ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+function renderHist(){
+  const box = $('histBody');
+  $('btnClear').classList.toggle('hide', !HIST.length);
+  if (!HIST.length) { box.innerHTML = '<p class="empty">아직 기록이 없어요.<br>5번을 다 재면 여기에 쌓입니다.</p>'; return; }
+  const bestAvg = Math.min(...HIST.map(h => h.avg)), bestOne = Math.min(...HIST.map(h => h.best));
+  const recent = HIST.slice(0, 20).reverse();
+  const top = Math.max(...recent.map(h => h.avg));
+  let h = '<div class="stats"><div class="st hi"><span>가장 빠른 평균</span><b>' + fmt(bestAvg) + '<small>ms</small></b></div>' +
+    '<div class="st"><span>가장 빠른 1회</span><b>' + fmt(bestOne) + '<small>ms</small></b></div>' +
+    '<div class="st"><span>측정</span><b>' + HIST.length + '<small>번</small></b></div></div>';
+  h += '<div class="trend" aria-hidden="true">' + recent.map((r, i) => '<i class="' +
+    (r.avg === bestAvg ? 'best' : i === recent.length - 1 ? 'last' : '') + '" style="height:' + Math.max(8, r.avg / top * 100).toFixed(1) +
+    '%" title="' + dstr(r.t) + ' 평균 ' + fmt(r.avg) + 'ms"></i>').join('') + '</div>';
+  h += '<div class="tcap"><span>최근 ' + recent.length + '번 평균 · 막대가 낮을수록 빨라요</span><span>최근 →</span></div>';
+  const list = histAll ? HIST : HIST.slice(0, 6);
+  h += '<ul class="hist">' + list.map(r => '<li><span class="hd">' + dstr(r.t) + '<br>' + esc(r.input || '') + (r.hz ? ' · ' + r.hz + 'Hz' : '') +
+    (r.early ? ' · 부정 출발 ' + r.early : '') + '</span><span class="hv">평균 <b>' + fmt(r.avg) + '</b> ms<br>최고 ' + fmt(r.best) + ' ms</span></li>').join('') + '</ul>';
+  if (HIST.length > 6) h += '<div class="btns"><button class="btn sm" id="btnMore" type="button">' + (histAll ? '최근 6개만 보기' : '전체 ' + HIST.length + '개 보기') + '</button></div>';
+  h += '<p class="small">기록은 이 브라우저에만 저장되고, 인터넷으로 보내지 않아요. 같은 입력 방법끼리 비교하세요.</p>';
+  box.innerHTML = h;
+  const more = $('btnMore');
+  if (more) more.addEventListener('click', () => { histAll = !histAll; renderHist(); });
+}
+
+/* ── 화면 주사율 어림 ── rAF 간격의 가운데값 → 흔한 값(60 · 120 · 144 …)에 가까우면 그 값으로 */
+function measureHz(){
+  if (HZ.busy || document.hidden) return;
+  HZ.busy = true;
+  const ds = []; let last = 0, n = 0;
+  const step = ts => {
+    if (last) ds.push(ts - last);
+    last = ts;
+    if (++n < 75 && !document.hidden) { requestAnimationFrame(step); return; }
+    HZ.busy = false;
+    if (ds.length < 30) return;
+    ds.sort((a, b) => a - b);
+    const med = ds[ds.length >> 1];
+    if (!(med > 1)) return;
+    let hz = 1000 / med;
+    const C = [30, 48, 50, 60, 72, 75, 90, 100, 120, 144, 165, 170, 180, 200, 240, 280, 360];
+    const c = C.reduce((a, b) => Math.abs(b - hz) < Math.abs(a - hz) ? b : a);
+    hz = Math.abs(c - hz) / c < 0.06 ? c : Math.round(hz);
+    HZ.v = hz;
+    $('hzChip').innerHTML = '화면 약 <b>' + hz + 'Hz</b> · 한 장 ' + (1000 / hz).toFixed(1) + 'ms';
+    renderRes();
+  };
+  requestAnimationFrame(step);
+}
+
+/* ── 결과 이미지 (1080×1080) ── */
+function resultCanvas(s){
+  const W = 1080, Hh = 1080, P = 72;
+  const c = document.createElement('canvas'); c.width = W; c.height = Hh;
+  const g = c.getContext('2d');
+  const font = '"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif';
+  const rr = (x, y, w, h, r) => { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r);
+    g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); };
+  g.fillStyle = '#f2f4f9'; g.fillRect(0, 0, W, Hh);
+  /* 위 띠 */
+  const grd = g.createLinearGradient(0, 0, W, 0); grd.addColorStop(0, '#2f5bea'); grd.addColorStop(1, '#5d86ff');
+  g.fillStyle = grd; g.fillRect(0, 0, W, 300);
+  g.fillStyle = '#ffffff'; g.font = '800 44px ' + font; g.textBaseline = 'alphabetic';
+  g.fillText('반응속도 테스트', P, 112);
+  const d = new Date(s.t);
+  g.font = '600 28px ' + font; g.fillStyle = 'rgba(255,255,255,.85)';
+  g.fillText(d.getFullYear() + '.' + pad(d.getMonth() + 1) + '.' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ' · 5회 측정', P, 162);
+  /* 큰 카드 */
+  g.fillStyle = '#ffffff'; rr(P, 210, W - P * 2, 280, 28); g.fill();
+  g.fillStyle = '#5a6479'; g.font = '800 30px ' + font; g.fillText('평균 반응 시간', P + 44, 280);
+  g.fillStyle = '#131a2c'; g.font = '900 150px ' + font;
+  const big = fmt(s.avg); g.fillText(big, P + 40, 440);
+  const bw = g.measureText(big).width;
+  g.font = '800 54px ' + font; g.fillStyle = '#5a6479'; g.fillText('ms', P + 52 + bw, 440);
+  /* 작은 칸 셋 */
+  const tiles = [['최고 (가장 빠름)', fmt(s.best) + ' ms', '#0b7f57', '#e2f4ec'], ['가장 느림', fmt(s.worst) + ' ms', '#131a2c', '#ffffff'],
+                 ['부정 출발', s.early + '회', '#131a2c', '#ffffff']];
+  const tw = (W - P * 2 - 32) / 3;
+  tiles.forEach((t, i) => {
+    const x = P + i * (tw + 16);
+    g.fillStyle = t[3]; rr(x, 520, tw, 130, 22); g.fill();
+    g.fillStyle = t[2] === '#0b7f57' ? '#0b7f57' : '#5a6479'; g.font = '800 24px ' + font; g.fillText(t[0], x + 26, 566);
+    g.fillStyle = t[2]; g.font = '900 46px ' + font; g.fillText(t[1], x + 26, 626);
+  });
+  /* 회차 막대 */
+  g.fillStyle = '#ffffff'; rr(P, 680, W - P * 2, 250, 22); g.fill();
+  const scale = Math.max(500, Math.ceil(s.worst / 100) * 100);
+  const x0 = P + 110, x1 = W - P - 180;
+  s.times.forEach((v, i) => {
+    const y = 718 + i * 42;
+    g.fillStyle = '#5a6479'; g.font = '800 26px ' + font; g.fillText((i + 1) + '회', P + 34, y + 20);
+    g.fillStyle = '#eef1f7'; rr(x0, y, x1 - x0, 24, 12); g.fill();
+    g.fillStyle = v === s.best ? '#0b7f57' : '#2f5bea'; rr(x0, y, Math.max(24, (x1 - x0) * Math.min(1, v / scale)), 24, 12); g.fill();
+    g.fillStyle = v === s.best ? '#0b7f57' : '#131a2c'; g.font = '800 28px ' + font;
+    const lab = fmt(v) + ' ms'; g.fillText(lab, W - P - 34 - g.measureText(lab).width, y + 22);
+  });
+  /* 아래 */
+  g.fillStyle = '#5a6479'; g.font = '700 25px ' + font;
+  g.fillText('입력 ' + (s.input || '—') + (s.hz ? ' · 화면 약 ' + s.hz + 'Hz' : ''), P, 978);
+  g.font = '600 22px ' + font; g.fillStyle = '#8a93a6';
+  g.fillText('기기 · 화면 · 입력 장치에 따라 달라지는 참고용 기록 · hwj-hub.github.io/reaction_test', P, 1022);
+  return c;
+}
+/* 앱 안(WebView)은 blob: 내려받기를 못 한다 → data: 주소로. 그래도 안 되면 결과 카드의 이미지를 길게 눌러 저장 */
+function download(blob, name){
+  if (IA.on) {
+    const r = new FileReader();
+    r.onload = () => { const a = document.createElement('a'); a.href = r.result; a.download = name; document.body.appendChild(a); a.click(); a.remove(); };
+    r.readAsDataURL(blob);
+    return;
+  }
+  const u = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = u; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(u), 5000);
+}
+function savePng(){
+  const s = R.last || (HIST[0] && R.st === 'done' ? HIST[0] : null);
+  if (!s) { toast('5번을 다 재면 결과 이미지를 저장할 수 있어요'); return; }
+  const c = resultCanvas(s);
+  const d = new Date(s.t);
+  const name = '반응속도_평균' + Math.round(s.avg) + 'ms_' + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + '_' + pad(d.getHours()) + pad(d.getMinutes()) + '.png';
+  c.toBlob(b => {
+    if (!b) { toast('이미지를 만들지 못했어요'); return; }
+    download(b, name);
+    toast(IA.on ? '저장을 시도했어요. 안 되면 아래 이미지를 길게 눌러 저장하세요.' : '결과 이미지를 저장했어요');
+    AD.done('결과 이미지를 저장했습니다', '평균 ' + fmt(s.avg) + ' ms · 최고 ' + fmt(s.best) + ' ms 카드예요.',
+      ['단톡방 · SNS에 올릴 땐 <b>같은 기기 · 같은 입력 방법</b>으로 잰 기록끼리 견주세요.',
+       '화면을 다시 누르면 새로 5번을 잽니다. 지난 기록은 <b>내 기록</b>에 남아요.'], c.toDataURL('image/png'));
+  }, 'image/png');
+}
+
+/* ── 앱 안(WebView) ────────────────────────────────────── */
+const IA = {
+  naver: /NAVER\(inapp/i.test(UA),
+  kakao: /KAKAOTALK/i.test(UA),
+  line: /\bLine\//i.test(UA),
+  ios: IS_IOS,
+  android: /Android/i.test(UA)
+};
+IA.on = IA.naver || IA.kakao || IA.line ||
+  /Instagram|FBAN|FBAV|FB_IAB|DaumApps|everytimeApp|band\/|KAKAOSTORY/i.test(UA) ||
+  (IA.android && /;\s*wv\)/i.test(UA));   /* 안드로이드 WebView 표시 */
+/* 크롬을 콕 집어 여는 것은 intent:// 뿐 — 카카오톡·라인은 앱이 정한 기본 브라우저가 열린다 */
+IA.chrome = IA.android && !IA.kakao && !IA.line;
+IA.copyOnly = IA.ios && !IA.kakao && !IA.line;   /* 아이폰(카카오·라인 제외)은 주소 복사로 */
+IA.app = IA.naver ? (/NAVER\(inapp;\s*blog/i.test(UA) ? '네이버 블로그 앱' : '네이버 앱') : IA.kakao ? '카카오톡' : IA.line ? '라인' : '앱';
+IA.label = IA.copyOnly ? '주소 복사' : IA.chrome ? '크롬에서 열기' : '다른 브라우저로 열기';
+function externalUrl(){
+  const url = location.href;
+  if (IA.kakao) return 'kakaotalk://web/openExternal?url=' + encodeURIComponent(url);
+  if (IA.line) return url + (url.indexOf('?') >= 0 ? '&' : '?') + 'openExternalBrowser=1';
+  if (IA.android) return 'intent://' + url.replace(/^https?:\/\//i, '') +
+    '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=' + encodeURIComponent(url) + ';end';
+  return '';          /* 아이폰은 사파리를 강제로 열 수 없다 */
+}
+function copyText(text, done){
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text, done)); return; }
+  } catch (e) { /* 아래로 */ }
+  fallbackCopy(text, done);
+}
+function fallbackCopy(text, done){
+  const t = document.createElement('textarea');
+  t.value = text; t.setAttribute('readonly', ''); t.style.cssText = 'position:fixed;left:-9999px;top:0';
+  document.body.appendChild(t); t.select(); t.setSelectionRange(0, text.length);
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch (e) { /* 무시 */ }
+  t.remove();
+  if (ok) done(); else toast('복사하지 못했어요. 브라우저가 막았을 수 있습니다.');
+}
+function goOut(){
+  const u = externalUrl();
+  if (u) { location.href = u; return; }
+  copyText(location.href, () => toast('주소를 복사했습니다. 사파리를 열고 붙여 넣거나, 화면의 메뉴에서 「다른 브라우저로 열기」를 누르세요.', 4200));
+}
+function initInApp(){
+  if (!IA.on) return;
+  let hidden = false;
+  try { hidden = sessionStorage.getItem('reaction_test.iahide') === '1'; } catch (e) { /* 무시 */ }
+  if (!hidden) document.body.classList.add('inapp');
+  $('iaMsg').textContent = IA.app + ' 안에서는 결과 이미지 저장이 막힐 수 있어요.';
+  $('iaSub').textContent = '측정과 기록은 여기서도 됩니다. 이미지를 저장하려면 ' + (IA.copyOnly ? '주소를 복사해 사파리에서' : '브라우저에서') + ' 열어 주세요.';
+  $('iaGo').textContent = IA.label;
+}
+
+/* ════════════════════════════════════════════════════════════
+   광고 (카카오 애드핏) — 키보드 테스트의 AD 객체를 그대로 옮기고 「핵심 행동 중」 조건 · 결과 카드 이동만 바꿈
+     · ins 는 자리마다 다 만든 뒤 ba.min.js 를 맨 끝에 딱 한 번 넣는다
+     · 측정 화면이 보이는 동안 · 측정 중에는 오버형을 내려 둔다(핵심 행동 중 광고 노출 금지)
+     · 결과 카드는 창으로 덮지 않고 흐름 안에 펼치며, 화면을 끌고 가지 않는다
+       (연달아 누르던 손가락 밑으로 광고가 밀려 들어오면 오클릭이 된다)
+   ※ 단위 ID 는 애드핏에서 크기별로 따로 발급받아 아래 units 에만 적으면 된다. DAN-XXXX 그대로면 광고를 부르지 않는다.
+     같은 ID 를 두 자리에 쓰면 한 화면에 두 번 노출되어 정책 위반이다.
+   ════════════════════════════════════════════════════════════ */
+const AD = {
+  units: {
+    top:     { id: 'DAN-XXXXXXXXXXXXXXXX', w: 320, h: 50 },   /* 맨 위 · 모바일과 PC 크기가 같아 하나로 겸한다 */
+    side_pc: { id: 'DAN-XXXXXXXXXXXXXXXX', w: 320, h: 50 },   /* PC 옆 칸 맨 위 (좁은 화면에서는 안 뜬다) */
+    done:    { id: 'DAN-XXXXXXXXXXXXXXXX', w: 300, h: 250 },  /* 결과 카드 · 모바일·PC 공통 */
+    anchor:  { id: 'DAN-XXXXXXXXXXXXXXXX', w: 320, h: 50 }    /* 모바일 하단 오버형 (PC 에서는 안 뜬다) */
+  },
+  iframeOk: true,
+  popup: true,
+  overlay: true,
+  init(){
+    this.off = IN_FRAME && !this.iframeOk;
+    this.pc = window.matchMedia('(min-width:980px)').matches;
+    if (this.off) { document.body.classList.add('no-ad'); return; }
+    this.put($('ad-top'), 'top');
+    if (this.pc) this.put($('ad-side'), 'side_pc');
+    /* 숨어 있는 자리(하단 오버형·결과 카드)는 화면에 나온 다음에 부른다 */
+    this.load();
+  },
+  put(box, key, preload){
+    const u = this.units[key];
+    if (!box || !u || box.dataset.ad) return;
+    if (document.querySelectorAll('ins.kakao_ad_area').length >= 4) return;
+    box.dataset.ad = key;
+    box.style.width = u.w + 'px';
+    if (/XXXX/.test(u.id)) { box.style.height = u.h + 'px'; box.innerHTML = '<div class="ad-ph">광고 ' + u.w + ' × ' + u.h + '</div>'; return; }
+    box.style.minHeight = u.h + 'px';
+    const fail = 'adNone_' + box.id.replace(/-/g, '_');
+    window[fail] = () => {
+      box.classList.add('ad-none');
+      if (key === 'anchor') { this.closed = true; this.sync(true); }
+      if (key === 'done' && $('doneAd')) $('doneAd').classList.add('ad-none');
+    };
+    const ins = document.createElement('ins');
+    ins.className = 'kakao_ad_area'; ins.style.display = 'none';
+    ins.setAttribute('data-ad-unit', u.id);
+    ins.setAttribute('data-ad-width', String(u.w));
+    ins.setAttribute('data-ad-height', String(u.h));
+    ins.setAttribute('data-ad-onfail', fail);
+    if (preload) ins.setAttribute('data-ad-preload', 'Y');
+    box.appendChild(ins);
+    this.need = true;
+  },
+  show(box, key){
+    if (this.off || !box || box.dataset.ad) return;
+    this.put(box, key, true);
+    this.load();
+    try {
+      const ins = box.querySelector('ins');
+      if (ins && window.adfit && typeof window.adfit.render === 'function') window.adfit.render(ins);
+    } catch (e) { /* 안 되면 0.7초 뒤 preload 차례가 채운다 */ }
+  },
+  load(){
+    if (!this.need || this.loaded) return;
+    this.loaded = true;
+    const s = document.createElement('script');
+    s.type = 'text/javascript'; s.async = true;
+    s.src = 'https://t1.kakaocdn.net/kas/static/ba.min.js';
+    document.body.appendChild(s);
+  },
+  sync(busy){
+    if (this.off || this.pc || !this.overlay) return;
+    const show = !this.closed && !busy && window.scrollY > 320;
+    $('anchor').classList.toggle('on', show);
+    document.body.classList.toggle('anch', show);
+    if (show) this.show($('ad-anchor'), 'anchor');
+  },
+  done(title, msg, steps, img){
+    if (this.off || !this.popup) return;
+    $('doneTitle').textContent = title;
+    $('doneMsg').textContent = msg;
+    $('doneSteps').innerHTML = steps.map(t => '<li>' + t + '</li>').join('');
+    $('doneImg').classList.toggle('hide', !img);
+    $('doneImgNote').classList.toggle('hide', !img);
+    if (img) $('doneImg').src = img;
+    $('doneCard').classList.remove('hide');
+    this.show($('ad-done'), 'done');
+    /* 이미지를 저장했을 때(단추를 누른 뒤)만 결과 카드 쪽으로 옮긴다 — 측정을 마친 순간에는 화면을 움직이지 않는다 */
+    if (img) setTimeout(() => {
+      if (this.pc) { const side = $('side'), card = $('doneCard'); side.scrollTo({top: Math.max(0, card.offsetTop - 12), behavior: 'smooth'}); }
+      else $('doneCard').scrollIntoView({behavior: 'smooth', block: 'start'});
+      updateAnchor();
+    }, 250);
+    else updateAnchor();
+  },
+  hideDone(){ if (!$('doneCard').classList.contains('hide')) { $('doneCard').classList.add('hide'); updateAnchor(); } }
+};
+
+/* 하단 오버형을 띄워도 되는가 — 측정 화면이 보이거나 측정 중이면 안 된다 */
+function updateAnchor(){
+  const busy = R.st === 'wait' || R.st === 'go' || onScreen(stage, 40) || onScreen($('doneCard'), 30);
+  AD.sync(busy);
+}
+
+/* ── 시작 ── */
+function init(){
+  loadHist();
+  paintIdle();
+  renderRes(); renderHist();
+  $('btnPng').addEventListener('click', savePng);
+  $('btnReset').addEventListener('click', () => {
+    clearTimeout(R.timer);
+    newSession();
+    paintIdle();
+    toast('처음부터 다시 잽니다');
+  });
+  $('btnClear').addEventListener('click', () => {
+    if (!HIST.length) return;
+    if (!confirm('이 기기에 저장된 반응속도 기록 ' + HIST.length + '개를 모두 지울까요? 되돌릴 수 없습니다.')) return;
+    HIST = []; saveHist(); histAll = false; renderHist(); toast('기록을 지웠어요');
+  });
+  $('doneHide').addEventListener('click', () => AD.hideDone());
+  $('anchorX').addEventListener('click', () => { AD.closed = true; AD.sync(true); });
+  $('iaGo').addEventListener('click', goOut);
+  $('iaX').addEventListener('click', () => {
+    document.body.classList.remove('inapp');
+    try { sessionStorage.setItem('reaction_test.iahide', '1'); } catch (e) { /* 무시 */ }
+  });
+  let st = 0;
+  window.addEventListener('scroll', () => { clearTimeout(st); st = setTimeout(updateAnchor, 80); }, {passive: true});
+  window.addEventListener('resize', () => { clearTimeout(st); st = setTimeout(updateAnchor, 120); });
+  initInApp();
+  AD.init();
+  setTimeout(measureHz, 600);
+}
+init();
+</script>
+</body>
+</html>
